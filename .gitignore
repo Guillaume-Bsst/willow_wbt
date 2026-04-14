@@ -1,0 +1,42 @@
+# Raw dataset contents (keep folder structure, ignore actual data files)
+data/00_raw_datasets/LAFAN/*
+!data/00_raw_datasets/LAFAN/lafan1/
+data/00_raw_datasets/LAFAN/lafan1/*
+!data/00_raw_datasets/LAFAN/lafan1/.gitkeep
+
+data/00_raw_datasets/OMOMO/*
+!data/00_raw_datasets/OMOMO/data/
+data/00_raw_datasets/OMOMO/data/*
+!data/00_raw_datasets/OMOMO/data/.gitkeep
+!data/00_raw_datasets/OMOMO/smplh/
+data/00_raw_datasets/OMOMO/smplh/*
+!data/00_raw_datasets/OMOMO/smplh/.gitkeep
+
+data/00_raw_datasets/SFU/*
+!data/00_raw_datasets/SFU/SFU/
+data/00_raw_datasets/SFU/SFU/*
+!data/00_raw_datasets/SFU/SFU/.gitkeep
+!data/00_raw_datasets/SFU/models_smplx_v1_1/
+data/00_raw_datasets/SFU/models_smplx_v1_1/*
+!data/00_raw_datasets/SFU/models_smplx_v1_1/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+.venv/
+venv/
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
