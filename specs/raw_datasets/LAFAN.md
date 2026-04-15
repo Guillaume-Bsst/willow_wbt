@@ -8,7 +8,7 @@
 | Frame rate | 30 Hz (frame time = 0.033333s) |
 | Coordinate system | Y-up, right-handed |
 | Units | centimeters (positions), degrees (rotations) |
-| Joint count | 23 |
+| Joint count | 22 |
 
 ---
 
@@ -63,7 +63,8 @@ Frame Time: 0.033333
 | 20 | RightForeArm |
 | 21 | RightHand |
 
-> Note: 22 joints listed above + root = 23 total.
+> bvhio returns 22 joints in depth-first order (Hips is index 0 / root).
+> This is a 1:1 mapping to SMPL-X 22 joints — all 22 LAFAN joints are kept, just reordered.
 
 ---
 

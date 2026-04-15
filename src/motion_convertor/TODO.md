@@ -127,7 +127,9 @@ BVH structure: root has 6 channels (3 translation cm + 3 rotation ZYX degrees), 
   2. For each frame, compute **global** joint positions via FK on the skeleton tree
   3. Convert positions from centimeters → metres (divide by 100)
   4. Apply Y-up → Z-up rotation: `R = [[1,0,0],[0,0,-1],[0,1,0]]`, apply to all positions
-  5. Map LAFAN 23 joints → SMPL-X 22 joints (drop `LeftToe` idx=4, `RightToe` idx=8 — **TODO: verify exact mapping**)
+  5. Reorder LAFAN 22 joints → SMPL-X 22 joints (permutation only, no joints dropped):
+     `_LAFAN_TO_SMPLX = [0,1,5,9,2,6,10,3,7,11,4,8,12,14,18,13,15,19,16,20,17,21]`
+     LeftToe→L_Foot, RightToe→R_Foot (kept, not dropped)
   6. `height = 1.75` (hardcoded, LAFAN has no height field)
 - Save with `save_unified(out_path, positions, 1.75)`
 

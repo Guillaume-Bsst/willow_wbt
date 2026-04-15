@@ -17,12 +17,13 @@
 
 ### `lafan` format — `.npy`
 
-- Shape: `(T, 23, 3)` — global joint positions, Y-up
+- Shape: `(T, 22, 3)` — global joint positions, Y-up
 - Units: metres
 - **Coordinate transform applied internally**: Y→Z-up swap
 - **Spine correction**: `Spine1` z-coordinate adjusted by `-0.06 m`
 - **Scale factor**: `1.27 / 1.7 = 0.747` (fixed, based on LAFAN height distribution)
-- 23 LAFAN joints in order — see [datasets/LAFAN.md](../raw_datasets/LAFAN.md)
+- 22 joints in `LAFAN_DEMO_JOINTS` order (Right-first): Hips, RightUpLeg, RightLeg, RightFoot, RightToeBase, LeftUpLeg, LeftLeg, LeftFoot, LeftToeBase, Spine, Spine1, Spine2, Neck, Head, RightShoulder, RightArm, RightForeArm, RightHand, LeftShoulder, LeftArm, LeftForeArm, LeftHand
+- Note: bvhio returns joints in Left-first order — must reorder to match `LAFAN_DEMO_JOINTS`
 
 ### `smplx` format — `.npz` (unified format)
 

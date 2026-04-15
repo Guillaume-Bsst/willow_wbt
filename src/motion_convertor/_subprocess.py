@@ -1,0 +1,65 @@
+"""
+Helpers for running module commands in their own conda environments.
+Reads cfg/ yamls to get env names and command templates.
+"""
+import subprocess
+import sys
+import yaml
+from pathlib import Path
+
+from ._config import repo_root
+
+
+def load_module_cfg(stage: str, module: str) -> dict:
+    """Load cfg/{stage}/{module}.yaml"""
+    cfg_path = repo_root() / "cfg" / stage / f"{module}.yaml"
+    return yaml.safe_load(cfg_path.read_text())
+
+
+def conda_run(env: str, cmd: str, cwd: Path | None = None, check: bool = True) -> subprocess.CompletedProcess:
+    """
+    Run a shell command inside a conda environment.
+
+    Uses `conda run -n {env} --no-capture-output {cmd}` so that the
+    subprocess inherits stdout/stderr (visible to the caller).
+    """
+    if cwd is None:
+        cwd = repo_root()
+
+    full_cmd = f"conda run -n {env} --no-capture-output {cmd}"
+    return subprocess.run(
+        full_cmd,
+        shell=True,
+        cwd=str(cwd),
+        check=check,
+    )
+
+
+def run_entry_point(stage: str, module: str, entry: str, args: dict, cwd: Path | None = None) -> subprocess.CompletedProcess:
+    """
+    Run a named entry point from cfg/{stage}/{module}.yaml.
+
+    `args` is a dict mapping Willow arg names → values.
+    Unrecognised keys are silently ignored (some entry points have no args).
+    """
+    cfg = load_module_cfg(stage, module)
+    env = cfg["env"]
+    ep = cfg["entry_points"][entry]
+
+    cmd = ep["cmd"]
+    arg_map = ep.get("args", {})
+    for willow_key, value in args.items():
+        flag = arg_map.get(willow_key)
+        if flag is not None:
+            cmd += f" {flag} {value}"
+
+    # Use per-entry cwd if specified in yaml, otherwise fall back to caller-supplied cwd
+    ep_cwd = ep.get("cwd")
+    if ep_cwd is not None:
+        effective_cwd = repo_root() / ep_cwd
+    elif cwd is not None:
+        effective_cwd = cwd
+    else:
+        effective_cwd = repo_root()
+
+    return conda_run(env, cmd, cwd=effective_cwd)
