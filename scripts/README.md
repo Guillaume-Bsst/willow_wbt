@@ -1,38 +1,42 @@
 # Scripts
 
-Pipeline entry points. Each script orchestrates one stage of the pipeline — it selects which solution to use, calls the appropriate module, and uses the converters to handle all data I/O. The modules themselves are never modified.
+Pipeline entry points. Each script orchestrates one stage of the pipeline — it selects which solution to use, calls the appropriate module, and uses `src/motion_convertor/` to handle all data I/O. The modules themselves are never modified.
 
 ---
 
 ## retarget.py
 
-Runs a retargeting job for a given dataset/retargeter combination.
+Runs a retargeting job for a given dataset/retargeter/robot combination.
 
 **What it does:**
 1. Reads raw data from `data/00_raw_datasets/{dataset}/`
-2. Calls `src/motion_convertor/` to convert to the retargeter's native input format
-3. Calls `modules/01_retargeting/{retargeter}` to run retargeting
-4. Calls `src/motion_convertor/` to convert input and output to unified format
-5. Saves to `data/01_retargeted_motions/{dataset}/{retargeter}/run_{timestamp}/`:
-   - `{seq}_input_raw.{ext}` — native input
-   - `{seq}_input_unified.npz` — unified input
-   - `{seq}_output_raw.{ext}` — native output
-   - `{seq}_output_unified.npz` — unified output
-   - `config.yaml` — exact parameters used
-6. Updates the `latest →` symlink
+2. Calls `motion_convertor.to_retargeter_input()` → `{seq}_input_raw.{ext}`
+3. Calls `motion_convertor.to_unified_input()` → `{seq}_input_unified.npz`
+4. Calls `modules/01_retargeting/{retargeter}` to run retargeting → `{seq}_output_raw.{ext}`
+5. Calls `motion_convertor.to_unified_output()` → `{seq}_output_unified.npz`
+6. Writes `config.yaml` and updates the `latest →` symlink
+
+**Output** — `data/01_retargeted_motions/{dataset}_{robot}/{retargeter}/run_{timestamp}/`:
+```
+{seq}_input_raw.{ext}
+{seq}_input_unified.npz
+{seq}_output_raw.{ext}
+{seq}_output_unified.npz
+config.yaml
+```
 
 **Supported combinations:**
 
-| Dataset | GMR | holosoma_retargeter |
+| Dataset | GMR | holosoma_retargeting |
 |---------|-----|---------------------|
-| LAFAN1 | ✅ | ✅ |
+| LAFAN | ✅ | ✅ |
 | SFU | ✅ | ✅ |
 | OMOMO robot_only | ✅ | ✅ |
 | OMOMO object_interaction | ❌ | ✅ |
 
 ```bash
-python scripts/retarget.py --dataset LAFAN --retargeter GMR --config configs/retarget_gmr.yaml
-python scripts/retarget.py --dataset OMOMO_object_interaction --retargeter holosoma_retargeter
+python scripts/retarget.py --dataset LAFAN --robot G1 --retargeter GMR
+python scripts/retarget.py --dataset OMOMO_object_interaction --robot G1 --retargeter holosoma_retargeting
 ```
 
 ---
@@ -42,17 +46,18 @@ python scripts/retarget.py --dataset OMOMO_object_interaction --retargeter holos
 Runs a WBT training job from retargeted motions.
 
 **What it does:**
-1. Reads unified motions from `data/01_retargeted_motions/{dataset}/{retargeter}/latest/`
-2. Calls `src/policy_convertor/` to convert to the trainer's expected input format
+1. Locates the retargeting run in `data/01_retargeted_motions/{dataset}_{robot}/{retargeter}/latest/` (or a specific `run_{timestamp}`)
+2. Calls `motion_convertor.to_trainer_input()` → `{seq}_trainer_input.npz` (written into the existing run folder)
 3. Calls `modules/02_training/{trainer}` to run training
-4. Saves to `data/02_policies/{dataset}/{retargeter}/{trainer}/run_{timestamp}/`:
-   - trained checkpoint (`.pt`)
-   - exported policy (`.onnx`)
+4. Saves to `data/02_policies/{dataset}_{robot}/{retargeter}_{trainer}/run_{timestamp}/`:
+   - `checkpoint.pt` — trained weights
+   - `policy.onnx` — exported policy
    - `config.yaml`
 5. Updates the `latest →` symlink
 
 ```bash
-python scripts/train.py --dataset LAFAN --retargeter GMR --trainer holosoma --config configs/train_wbt.yaml
+python scripts/train.py --dataset LAFAN --robot G1 --retargeter GMR --trainer holosoma
+python scripts/train.py --dataset LAFAN --robot G1 --retargeter GMR --trainer holosoma --run run_20240301_120000
 ```
 
 ---
@@ -62,14 +67,13 @@ python scripts/train.py --dataset LAFAN --retargeter GMR --trainer holosoma --co
 Runs inference from a trained policy in simulation or on a real robot.
 
 **What it does:**
-1. Reads the ONNX policy from `data/02_policies/{dataset}/{retargeter}/{trainer}/latest/`
+1. Reads the ONNX policy from `data/02_policies/{dataset}_{robot}/{retargeter}_{trainer}/latest/`
 2. Calls `modules/03_inference/{engine}`
 
-**Modes:**
 ```bash
 # MuJoCo sim-to-sim evaluation
-python scripts/infer.py --dataset LAFAN --retargeter GMR --trainer holosoma --mode sim
+python scripts/infer.py --dataset LAFAN --robot G1 --retargeter GMR --trainer holosoma --mode sim
 
 # Real robot deployment
-python scripts/infer.py --dataset LAFAN --retargeter GMR --trainer holosoma --mode real
+python scripts/infer.py --dataset LAFAN --robot G1 --retargeter GMR --trainer holosoma --mode real
 ```

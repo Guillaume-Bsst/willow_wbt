@@ -13,7 +13,7 @@ Most WBT research produces isolated solutions: a retargeter here, a trainer ther
 Willow WBT solves this by defining:
 
 1. **A unified data format** — a common interface between all stages so any retargeter can feed any trainer
-2. **Adapters** (`src/motion_convertor/`, `src/policy_convertor/`) — thin translation layers that convert each solution's native I/O to/from the unified format, without modifying the solutions themselves
+2. **Adapters** (`src/motion_convertor/`) — thin translation layers that convert each solution's native I/O to/from the unified format, without modifying the solutions themselves
 3. **Versioned runs** — every run stores its config, inputs, and outputs so results are reproducible and comparable
 4. **A modular module registry** (`modules/`) — existing solutions are plugged in as submodules or symlinks, untouched
 
@@ -30,14 +30,14 @@ Raw MoCap datasets (LAFAN1, OMOMO, SFU, ...)
         │  scripts/retarget.py       ← run any retargeter on any dataset
         │  src/motion_convertor/     ← adapter: dataset/retargeter formats ↔ unified format
         ▼
-  01_retargeted_motions/             ← {dataset}/{retargeter}/run_{timestamp}/
+  01_retargeted_motions/             ← {dataset}_{robot}/{retargeter}/run_{timestamp}/
         │                                 native input, unified input
         │                                 native output, unified output
         │                                 config.yaml
         │  scripts/train.py          ← run any trainer on any retargeted motion
-        │  src/policy_convertor/     ← adapter: unified format ↔ trainer input format
+        │  src/motion_convertor/     ← adapter: retargeter output → trainer input format
         ▼
-  02_policies/                       ← {dataset}/{retargeter}/{trainer}/run_{timestamp}/
+  02_policies/                       ← {dataset}_{robot}/{retargeter}_{trainer}/run_{timestamp}/
         │
         │  scripts/infer.py          ← deploy any policy in sim or on real robot
         ▼
@@ -76,7 +76,7 @@ Raw MoCap datasets (LAFAN1, OMOMO, SFU, ...)
 The framework is designed to make integration straightforward:
 
 1. **New retargeter** — add as submodule in `modules/01_retargeting/`, write an adapter in `src/motion_convertor/` that converts its I/O to/from unified format
-2. **New trainer** — add as submodule in `modules/02_training/`, write an adapter in `src/policy_convertor/`
+2. **New trainer** — add as submodule in `modules/02_training/`, write an adapter in `src/motion_convertor/to_trainer_input/`
 3. **New dataset** — add download instructions in `data/00_raw_datasets/README.md`, write a prep converter in `src/motion_convertor/`
 4. **New inference engine** — add as submodule in `modules/03_inference/`, plug into `scripts/infer.py`
 
@@ -99,8 +99,7 @@ willow_wbt/
 │   └── infer.py
 │
 ├── src/
-│   ├── motion_convertor/      → see src/motion_convertor/README.md
-│   └── policy_convertor/
+│   └── motion_convertor/      → see src/motion_convertor/README.md
 │
 └── modules/
     ├── 01_retargeting/
