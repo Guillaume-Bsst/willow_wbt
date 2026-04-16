@@ -3,9 +3,9 @@
 # Install: follow modules/third_party/holosoma_custom/scripts/source_retargeting_setup.sh
 # Ecosystem: ~/.holosoma_custom_deps/
 
-env: hsretargeting
+env: hscretargeting
 
-# Wrapper scripts (willow code, runs in hsretargeting env)
+# Wrapper scripts (willow code, runs in hscretargeting env)
 wrappers:
   convert: scripts/wrappers/holosoma_convert.py   # qpos .npz → form B .npz via MuJoCo bridge
 

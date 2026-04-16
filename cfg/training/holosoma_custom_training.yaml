@@ -6,19 +6,19 @@
 # holosoma_custom uses one conda env per simulator — select with --simulator flag in scripts/train.py
 simulators:
   isaacgym:
-    env: hsgym
+    env: hscgym
     setup_script: modules/third_party/holosoma_custom/scripts/source_isaacgym_setup.sh
     cmd: python modules/02_training/holosoma_custom/holosoma/train_agent.py
     extra_args: simulator:isaacgym
 
   isaacsim:
-    env: hssim
+    env: hscsim
     setup_script: modules/third_party/holosoma_custom/scripts/source_isaacsim_setup.sh
     cmd: python modules/02_training/holosoma_custom/holosoma/train_agent.py
     extra_args: simulator:isaacsim
 
   mjwarp:
-    env: hsmujoco
+    env: hscmujoco
     setup_script: modules/third_party/holosoma_custom/scripts/source_mujoco_setup.sh
     cmd: python modules/02_training/holosoma_custom/holosoma/train_agent.py
     extra_args: simulator:mjwarp

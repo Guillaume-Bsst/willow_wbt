@@ -7,7 +7,7 @@
 #   - sdk_type: ros2  →  publishes joint commands via ROS2 (/holosoma/low_cmd)
 #                         requires unitree_control_interface env for the receiving side
 
-env: hsinference
+env: hscinference
 
 # Entry point
 entry_points:
