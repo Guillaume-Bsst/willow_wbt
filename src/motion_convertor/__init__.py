@@ -45,20 +45,20 @@ def to_retargeter_input(
 
     if dataset == "LAFAN":
         if retargeter == "gmr":
-            from .to_retargeter_input.lafan_gmr import convert
+            from ._to_retargeter_input.lafan_gmr import convert
             convert(raw_path, out_path)
         elif retargeter == "holosoma":
-            from .to_retargeter_input.lafan_holosoma import convert
+            from ._to_retargeter_input.lafan_holosoma import convert
             convert(raw_path, out_path)
         else:
             raise ValueError(f"Unknown retargeter for LAFAN: {retargeter!r}")
 
     elif dataset == "SFU":
         if retargeter == "gmr":
-            from .to_retargeter_input.sfu_gmr import convert
+            from ._to_retargeter_input.sfu_gmr import convert
             convert(raw_path, out_path)
         elif retargeter == "holosoma":
-            from .to_retargeter_input.sfu_holosoma import convert
+            from ._to_retargeter_input.sfu_holosoma import convert
             convert(raw_path, out_path)
         else:
             raise ValueError(f"Unknown retargeter for SFU: {retargeter!r}")
@@ -69,17 +69,16 @@ def to_retargeter_input(
             raise ValueError("OMOMO conversion requires seq_data= keyword argument")
 
         if retargeter == "gmr":
-            from .to_retargeter_input.omomo_gmr import convert
+            from ._to_retargeter_input.omomo_gmr import convert
             convert(seq_data, out_path)
         elif retargeter == "holosoma":
             task_type = kwargs.get("task_type", "robot_only")
             if task_type == "robot_only":
-                from .to_retargeter_input.omomo_holosoma import convert_robot_only
+                from ._to_retargeter_input.omomo_holosoma import convert_robot_only
                 convert_robot_only(seq_data, out_path)
             else:
-                # object_interaction: run full InterAct pipeline
                 out_dir = kwargs.get("out_dir", out_path.parent)
-                from .to_retargeter_input.omomo_holosoma import convert_object_interaction
+                from ._to_retargeter_input.omomo_holosoma import convert_object_interaction
                 convert_object_interaction(out_dir)
         else:
             raise ValueError(f"Unknown retargeter for OMOMO: {retargeter!r}")
@@ -114,18 +113,18 @@ def to_unified_input(
     out_path = Path(out_path)
 
     if dataset == "LAFAN":
-        from .to_unified_input.lafan import convert
+        from ._to_unified_input.lafan import convert
         convert(raw_path, out_path)
 
     elif dataset == "SFU":
-        from .to_unified_input.sfu import convert
+        from ._to_unified_input.sfu import convert
         convert(raw_path, out_path)
 
     elif dataset == "OMOMO":
         seq_data = kwargs.get("seq_data")
         if seq_data is None:
             raise ValueError("OMOMO conversion requires seq_data= keyword argument")
-        from .to_unified_input.omomo import convert
+        from ._to_unified_input.omomo import convert
         convert(seq_data, out_path)
 
     else:
@@ -160,11 +159,11 @@ def to_unified_output(
     out_path = Path(out_path)
 
     if retargeter == "gmr":
-        from .to_unified_output.gmr import convert
+        from ._to_unified_output.gmr import convert
         convert(output_raw_path, out_path, height, xml_path=kwargs.get("xml_path"))
 
     elif retargeter == "holosoma":
-        from .to_unified_output.holosoma import convert
+        from ._to_unified_output.holosoma import convert
         convert(output_raw_path, out_path, height)
 
     else:
@@ -203,14 +202,14 @@ def to_trainer_input(
     out_path = Path(out_path)
 
     if retargeter == "holosoma" and trainer == "holosoma":
-        from .to_trainer_input.holosoma_holosoma import convert
+        from ._to_trainer_input.holosoma_holosoma import convert
         convert(output_raw_path, out_path,
                 robot=kwargs.get("robot", "g1"),
                 input_fps=kwargs.get("input_fps", 30),
                 output_fps=kwargs.get("output_fps", 50))
 
     elif retargeter == "gmr" and trainer == "holosoma":
-        from .to_trainer_input.gmr_holosoma import convert
+        from ._to_trainer_input.gmr_holosoma import convert
         convert(output_raw_path, out_path, xml_path=kwargs.get("xml_path"))
 
     else:

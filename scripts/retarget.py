@@ -67,14 +67,16 @@ def discover_sequences(dataset: str, sequences: list[str] | None) -> list[tuple]
     return seqs
 
 
-def _get_retargeter_format(dataset: str, retargeter: str) -> str:
+def _get_retargeter_format(dataset: str, retargeter: str, task_type: str = "robot_only") -> str:
     """Return data_format string expected by holosoma retargeter."""
     dataset = dataset.upper()
     if retargeter.lower() == "holosoma":
         if dataset == "LAFAN":
             return "lafan"
-        elif dataset in ("SFU", "OMOMO"):
+        elif dataset == "SFU":
             return "smplx"
+        elif dataset == "OMOMO":
+            return "smplh" if task_type == "object_interaction" else "smplx"
     return ""
 
 
@@ -174,7 +176,7 @@ def _run_retargeter(
     output_raw_path: Path,
     run_dir: Path,
     seq_name: str,
-    task_type: str,
+    task_type: str = "robot_only",
 ) -> None:
     """Invoke the external retargeter via subprocess."""
     env = cfg["env"]
@@ -194,7 +196,7 @@ def _run_retargeter(
         ep = cfg["entry_points"]["single"]
         cmd = ep["cmd"]
         arg_map = ep["args"]
-        data_format = _get_retargeter_format(dataset, "holosoma")
+        data_format = _get_retargeter_format(dataset, "holosoma", task_type)
         robot_urdf = _robot_urdf_holosoma(robot)
         cmd += f" {arg_map['input_dir']} {input_raw_path.parent}"
         cmd += f" {arg_map['output_dir']} {run_dir}"
@@ -239,13 +241,22 @@ def main():
     dataset = args.dataset.upper()
     robot = args.robot.upper()
     retargeter = args.retargeter.lower()
+    task_type = args.task_type
 
     # Load retargeter config
     cfg = load_module_cfg("retargeting", retargeter if retargeter == "gmr" else "holosoma_retargeting")
 
-    # Resolve output run directory
+    # Resolve output run directory.
+    # For OMOMO, task_type is encoded in the dataset folder name:
+    #   OMOMO_robot_G1/GMR/run_20240301_120000/
+    #   OMOMO_object_G1/HOLOSOMA/run_.../
     out_base = output_path("retargeted_motions")
-    run_parent = out_base / f"{dataset}_{robot}" / retargeter.upper()
+    if dataset == "OMOMO":
+        task_suffix = "robot" if task_type == "robot_only" else "object"
+        dataset_dir = f"OMOMO_{task_suffix}_{robot}"
+    else:
+        dataset_dir = f"{dataset}_{robot}"
+    run_parent = out_base / dataset_dir / retargeter.upper()
     if args.run_id:
         run_dir = run_parent / args.run_id
     else:
@@ -293,7 +304,7 @@ def main():
                 seq_name, raw_path, run_dir,
                 dataset, robot, retargeter,
                 cfg, seq_data=seq_data,
-                task_type=args.task_type,
+                task_type=task_type,
             )
         except Exception as e:
             print(f"  ERROR: {e}")
@@ -306,7 +317,7 @@ def main():
             "dataset": dataset,
             "robot": robot,
             "retargeter": retargeter,
-            "task_type": args.task_type,
+            "task_type": task_type,
             "run_dir": str(run_dir),
             "sequences": args.sequences,
         }, f)

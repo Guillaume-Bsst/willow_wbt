@@ -1,31 +1,54 @@
 """
 OMOMO → holosoma retargeter input.
 
-For robot_only tasks: holosoma expects unified .npz format (same as to_unified_input/omomo.py).
+For robot_only tasks: holosoma expects unified .npz — global_joint_positions (T,22,3) Z-up metres + height.
 For object_interaction tasks: holosoma expects .pt tensors from InterAct 2-step pipeline.
 
 This module handles both task types:
-  - robot_only    → delegates to to_unified_input/omomo.py
-  - object_interaction → runs InterAct subprocess chain (process_omomo + interact2mimic)
+  - robot_only    → omomo_to_joints wrapper directly (hsretargeting env, human_body_prior)
+  - object_interaction → InterAct subprocess chain (process_omomo + interact2mimic)
                          via cfg/processing/interact.yaml
 """
+import tempfile
 from pathlib import Path
 
-from ..to_unified_input.omomo import convert as _omomo_unified
+from .._subprocess import run_entry_point
+from .._config import body_model_path
 
 
 def convert_robot_only(seq_data: dict, out_path: Path | str) -> None:
     """
     Convert an OMOMO robot_only sequence to holosoma retargeter input.
 
-    Produces unified .npz (same as to_unified_input/omomo output).
+    Produces unified .npz — global_joint_positions (T,22,3) Z-up metres + height.
 
     Parameters
     ----------
     seq_data : one entry from the joblib-loaded OMOMO pickle dict
     out_path : destination .npz path
     """
-    _omomo_unified(seq_data, out_path)
+    import joblib
+
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    model_dir = body_model_path("OMOMO")
+
+    with tempfile.NamedTemporaryFile(suffix=".p", delete=False) as f:
+        tmp_pickle = f.name
+    joblib.dump({0: seq_data}, tmp_pickle)
+
+    try:
+        run_entry_point(
+            "processing", "holosoma_prep", "omomo_to_joints",
+            args={
+                "pickle":    tmp_pickle,
+                "index":     "0",
+                "output":    str(out_path),
+                "model_dir": str(model_dir),
+            },
+        )
+    finally:
+        Path(tmp_pickle).unlink(missing_ok=True)
 
 
 def convert_object_interaction(out_dir: Path | str) -> None:

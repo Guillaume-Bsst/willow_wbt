@@ -186,6 +186,12 @@ install_retargeting_upstream() {
   _make_fake_pip "$FAKE_DIR" "$HOME/.holosoma_deps/miniconda3/envs/hsretargeting/bin/python"
   PATH="$FAKE_DIR:$PATH" bash "$HOLOSOMA_UPSTREAM_SCRIPTS/setup_retargeting.sh"
   rm -rf "$FAKE_DIR"
+
+  # Install human_body_prior from submodule (needed for AMASS/SFU preprocessing)
+  _header "human_body_prior → hsretargeting"
+  "$HOME/.holosoma_deps/miniconda3/envs/hsretargeting/bin/pip" install \
+    --no-deps --ignore-requires-python \
+    "$REPO_ROOT/src/motion_convertor/third_party/human_body_prior"
 }
 
 install_mujoco_upstream() {

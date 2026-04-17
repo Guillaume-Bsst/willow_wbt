@@ -59,28 +59,28 @@ Raw MoCap datasets (LAFAN1, OMOMO, SFU, ...)
 | Retargeter | Source | Datasets |
 |------------|--------|---------|
 | **GMR** | [YanjieZe/GMR](https://github.com/YanjieZe/GMR) | LAFAN1, SFU, OMOMO robot_only |
-| **holosoma_retargeting** | [amazon-far/holosoma](https://github.com/amazon-far/holosoma) | LAFAN1, SFU, OMOMO robot_only + object_interaction |
-| **holosoma_retargeting_custom** | [Guillaume-Bsst/holosoma_custom](https://github.com/Guillaume-Bsst/holosoma_custom) | LAFAN1, SFU, OMOMO robot_only + object_interaction |
+| **holosoma_retargeting** | [amazon-far/holosoma](https://github.com/amazon-far/holosoma) | LAFAN1, SFU, OMOMO robot_only + object_interaction (1 Motion) |
+| **holosoma_retargeting_custom** | [Guillaume-Bsst/holosoma_custom](https://github.com/Guillaume-Bsst/holosoma_custom) | LAFAN1, SFU, OMOMO robot_only + object_interaction (All Motions) |
 
 ### Trainers
 
 | Trainer | Source | Algorithms | Simulators |
 |---------|--------|-----------|-----------|
-| **holosoma** | [amazon-far/holosoma](https://github.com/amazon-far/holosoma) | PPO, FastSAC | IsaacGym, IsaacSim, MJWarp |
+| **holosoma** | [amazon-far/holosoma](https://github.com/amazon-far/holosoma) | PPO, FastSAC | IsaacGym, IsaacSim |
 | **holosoma_custom** | [Guillaume-Bsst/holosoma_custom](https://github.com/Guillaume-Bsst/holosoma_custom) | PPO, FastSAC | IsaacGym, IsaacSim, MJWarp |
 
 ### Inference
 
 | Engine | Source | Modes |
 |--------|--------|-------|
-| **holosoma_inference** | [amazon-far/holosoma](https://github.com/amazon-far/holosoma) | MuJoCo sim, real Unitree G1 |
-| **holosoma_inference_custom** | [Guillaume-Bsst/holosoma_custom](https://github.com/Guillaume-Bsst/holosoma_custom) | MuJoCo sim, real Unitree G1, **ROS2** |
+| **holosoma_inference** | [amazon-far/holosoma](https://github.com/amazon-far/holosoma) | MuJoCo sim-to-sim, Unitree API |
+| **holosoma_inference_custom** | [Guillaume-Bsst/holosoma_custom](https://github.com/Guillaume-Bsst/holosoma_custom) | MuJoCo sim-to-sim, Unitree API, **ROS2** |
 
 ### Deployment
 
 | Bridge | Source | Modes |
 |--------|--------|-------|
-| **unitree_ros2** | [unitreerobotics/unitree_ros2](https://github.com/unitreerobotics/unitree_ros2) | sim-to-sim, sim-to-real via ROS2 |
+| **unitree_ros2** | [unitreerobotics/unitree_ros2](https://github.com/unitreerobotics/unitree_ros2) | PyBullet sim-to-sim, sim-to-real via ROS2 |
 
 ---
 

@@ -16,3 +16,9 @@
 [submodule "modules/04_deployment/unitree_ros2"]
 	path = modules/04_deployment/unitree_ros2
 	url = git@github.com:unitreerobotics/unitree_ros2.git
+[submodule "src/motion_convertor/third_party/lafan1"]
+	path = src/motion_convertor/third_party/lafan1
+	url = https://github.com/ubisoft/ubisoft-laforge-animation-dataset.git
+[submodule "src/motion_convertor/third_party/human_body_prior"]
+	path = src/motion_convertor/third_party/human_body_prior
+	url = https://github.com/nghorbani/human_body_prior.git
