@@ -74,7 +74,7 @@ def discover_sequences(dataset: str, sequences: list[str] | None) -> list[tuple]
 def _get_retargeter_format(dataset: str, retargeter: str, task_type: str = "robot_only") -> str:
     """Return data_format string expected by holosoma retargeter."""
     dataset = dataset.upper()
-    if retargeter.lower() == "holosoma":
+    if retargeter.lower() in ("holosoma", "holosoma_custom"):
         if dataset == "LAFAN":
             return "lafan"
         elif dataset == "SFU":
@@ -92,7 +92,7 @@ def _get_file_ext(dataset: str, retargeter: str, task_type: str = "robot_only") 
         if dataset.upper() == "LAFAN":
             return ".bvh"
         return ".npz"
-    elif retargeter.lower() == "holosoma":
+    elif retargeter.lower() in ("holosoma", "holosoma_custom"):
         if dataset.upper() == "LAFAN":
             return ".npy"
         if dataset.upper() == "OMOMO_NEW":
@@ -106,7 +106,7 @@ def _get_file_ext(dataset: str, retargeter: str, task_type: str = "robot_only") 
 def _get_output_ext(retargeter: str) -> str:
     if retargeter.lower() == "gmr":
         return ".pkl"
-    return ".npz"
+    return ".npz"  # holosoma, holosoma_custom
 
 
 # ---------------------------------------------------------------------------
@@ -134,7 +134,7 @@ def retarget_sequence(
 
     # holosoma expects {data_path}/{task_name}.ext — use a dedicated input/ subdir
     # so the retargeter input files don't mix with its outputs in run_dir.
-    if retargeter_lo == "holosoma":
+    if retargeter_lo in ("holosoma", "holosoma_custom"):
         input_dir = run_dir / "input"
         input_dir.mkdir(parents=True, exist_ok=True)
         input_raw_path = input_dir / f"{seq_name}{input_ext}"
@@ -210,24 +210,25 @@ def _run_retargeter(
             cmd += f" {arg_map['body_model_path']} {bmp(dataset).parent}"
         conda_run(env, cmd, cwd=repo_root())
 
-    elif retargeter == "holosoma":
+    elif retargeter in ("holosoma", "holosoma_custom"):
         ep = cfg["entry_points"]["single"]
         cmd = ep["cmd"]
         arg_map = ep["args"]
         ep_cwd_rel = ep.get("cwd")
         ep_cwd = repo_root() / ep_cwd_rel if ep_cwd_rel else repo_root()
-        data_format = _get_retargeter_format(dataset, "holosoma", task_type)
-        robot_urdf = _robot_urdf_holosoma(robot)
+        data_format = _get_retargeter_format(dataset, retargeter, task_type)
+        robot_urdf = _robot_urdf_holosoma(robot, retargeter)
         cmd += f" {arg_map['input_dir']} {input_raw_path.parent}"
         cmd += f" {arg_map['output_dir']} {run_dir}"
         cmd += f" {arg_map['task_type']} {task_type}"
         cmd += f" {arg_map['task_name']} {seq_name}"
         cmd += f" {arg_map['data_format']} {data_format}"
         cmd += f" {arg_map['robot_urdf']} {robot_urdf}"
-        if visualize:
+        can_visualize = visualize and "visualize" in arg_map
+        if can_visualize:
             cmd += f" {arg_map['visualize']}"
             cmd += f" {arg_map['debug']}"
-        conda_run(env, cmd, cwd=ep_cwd, interactive=visualize)
+        conda_run(env, cmd, cwd=ep_cwd, interactive=can_visualize)
 
 
 def _robot_name_gmr(robot: str) -> str:
@@ -236,11 +237,16 @@ def _robot_name_gmr(robot: str) -> str:
     return mapping.get(robot.upper(), robot.lower())
 
 
-def _robot_urdf_holosoma(robot: str) -> str:
-    """Return absolute URDF path for holosoma retargeting."""
-    mapping = {
-        "G1": "modules/third_party/holosoma/src/holosoma_retargeting/holosoma_retargeting/models/g1/g1_29dof.urdf",
-    }
+def _robot_urdf_holosoma(robot: str, retargeter: str = "holosoma") -> str:
+    """Return absolute URDF path for holosoma / holosoma_custom retargeting."""
+    if retargeter == "holosoma_custom":
+        mapping = {
+            "G1": "modules/01_retargeting/holosoma_retargeting_custom/models/g1/g1_29dof.urdf",
+        }
+    else:
+        mapping = {
+            "G1": "modules/third_party/holosoma/src/holosoma_retargeting/holosoma_retargeting/models/g1/g1_29dof.urdf",
+        }
     rel = mapping.get(robot.upper(), "")
     return str(repo_root() / rel) if rel else ""
 
@@ -253,7 +259,7 @@ def main():
     parser = argparse.ArgumentParser(description="Run a retargeting job.")
     parser.add_argument("--dataset", required=True, help="LAFAN | SFU | OMOMO | OMOMO_new")
     parser.add_argument("--robot", required=True, help="G1 | H1 | ...")
-    parser.add_argument("--retargeter", required=True, help="GMR | holosoma")
+    parser.add_argument("--retargeter", required=True, help="GMR | holosoma | holosoma_custom")
     parser.add_argument("--sequences", nargs="*", help="Subset of sequences (default: all)")
     parser.add_argument("--run-id", default=None, help="Resume existing run (e.g. run_20240301_120000)")
     parser.add_argument("--task-type", default="robot_only",
@@ -270,7 +276,8 @@ def main():
     visualize = args.visualize
 
     # Load retargeter config
-    cfg = load_module_cfg("retargeting", retargeter if retargeter == "gmr" else "holosoma_retargeting")
+    _cfg_name = {"gmr": "gmr", "holosoma": "holosoma_retargeting", "holosoma_custom": "holosoma_custom_retargeting"}
+    cfg = load_module_cfg("retargeting", _cfg_name[retargeter])
 
     # Resolve output run directory.
     # For OMOMO, task_type is encoded in the dataset folder name:

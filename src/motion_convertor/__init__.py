@@ -29,8 +29,8 @@ def to_retargeter_input(
 
     Parameters
     ----------
-    dataset   : "LAFAN" | "SFU" | "OMOMO"
-    retargeter: "gmr" | "holosoma"
+    dataset   : "LAFAN" | "SFU" | "OMOMO" | "OMOMO_NEW"
+    retargeter: "gmr" | "holosoma" | "holosoma_custom"
     raw_path  : path to raw source file (.bvh / .npz / .p)
     out_path  : destination path
     kwargs    :
@@ -46,7 +46,7 @@ def to_retargeter_input(
         if retargeter == "gmr":
             from ._to_retargeter_input.lafan_gmr import convert
             convert(raw_path, out_path)
-        elif retargeter == "holosoma":
+        elif retargeter in ("holosoma", "holosoma_custom"):
             from ._to_retargeter_input.lafan_holosoma import convert
             convert(raw_path, out_path)
         else:
@@ -56,7 +56,7 @@ def to_retargeter_input(
         if retargeter == "gmr":
             from ._to_retargeter_input.sfu_gmr import convert
             convert(raw_path, out_path)
-        elif retargeter == "holosoma":
+        elif retargeter in ("holosoma", "holosoma_custom"):
             from ._to_retargeter_input.sfu_holosoma import convert
             convert(raw_path, out_path)
         else:
@@ -70,7 +70,7 @@ def to_retargeter_input(
         if retargeter == "gmr":
             from ._to_retargeter_input.omomo_gmr import convert
             convert(seq_data, out_path)
-        elif retargeter == "holosoma":
+        elif retargeter in ("holosoma", "holosoma_custom"):
             task_type = kwargs.get("task_type", "robot_only")
             if task_type == "robot_only":
                 from ._to_retargeter_input.omomo_holosoma import convert_robot_only
@@ -83,8 +83,8 @@ def to_retargeter_input(
             raise ValueError(f"Unknown retargeter for OMOMO: {retargeter!r}")
 
     elif dataset == "OMOMO_NEW":
-        if retargeter != "holosoma":
-            raise ValueError("OMOMO_new only supports holosoma retargeter")
+        if retargeter not in ("holosoma", "holosoma_custom"):
+            raise ValueError("OMOMO_new only supports holosoma / holosoma_custom retargeter")
         import shutil
         out_path.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(raw_path, out_path)
@@ -168,7 +168,7 @@ def to_unified_output(
         from ._to_unified_output.gmr import convert
         convert(output_raw_path, out_path, height, xml_path=kwargs.get("xml_path"))
 
-    elif retargeter == "holosoma":
+    elif retargeter in ("holosoma", "holosoma_custom"):
         from ._to_unified_output.holosoma import convert
         convert(output_raw_path, out_path, height)
 
@@ -209,6 +209,13 @@ def to_trainer_input(
 
     if retargeter == "holosoma" and trainer == "holosoma":
         from ._to_trainer_input.holosoma_holosoma import convert
+        convert(output_raw_path, out_path,
+                robot=kwargs.get("robot", "g1"),
+                input_fps=kwargs.get("input_fps", 30),
+                output_fps=kwargs.get("output_fps", 50))
+
+    elif retargeter == "holosoma_custom" and trainer in ("holosoma", "holosoma_custom"):
+        from ._to_trainer_input.holosoma_custom_holosoma import convert
         convert(output_raw_path, out_path,
                 robot=kwargs.get("robot", "g1"),
                 input_fps=kwargs.get("input_fps", 30),

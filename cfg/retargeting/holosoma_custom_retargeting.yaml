@@ -10,10 +10,11 @@ wrappers:
   convert: scripts/wrappers/holosoma_convert.py   # qpos .npz → form B .npz via MuJoCo bridge
 
 
-# Entry points (run from repo root)
+# Entry points (run from modules/01_retargeting/holosoma_retargeting_custom)
 entry_points:
   single:
-    cmd: python modules/01_retargeting/holosoma_retargeting_custom/examples/robot_retarget.py
+    cmd: python examples/robot_retarget.py
+    cwd: modules/01_retargeting/holosoma_retargeting_custom
     args:
       input_dir:   --data_path
       output_dir:  --save_dir
@@ -21,8 +22,11 @@ entry_points:
       task_name:   --task-name
       data_format: --data_format     # smplh | smplx | lafan | mocap
       robot_urdf:  --robot-config.robot-urdf-file
+      visualize:   --retargeter.visualize
+      debug:       --retargeter.debug
   batch:
-    cmd: python modules/01_retargeting/holosoma_retargeting_custom/examples/parallel_robot_retarget.py
+    cmd: python examples/parallel_robot_retarget.py
+    cwd: modules/01_retargeting/holosoma_retargeting_custom
     args:
       input_dir:   --data-dir
       output_dir:  --save_dir
