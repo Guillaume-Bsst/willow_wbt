@@ -58,6 +58,10 @@ def discover_sequences(dataset: str, sequences: list[str] | None) -> list[tuple]
         p_file = raw_dir / "train_diffusion_manip_seq_joints24.p"
         seqs = [("omomo_train", p_file)]   # will be expanded later per-sequence
 
+    elif ds == "OMOMO_NEW":
+        files = sorted(raw_dir.glob("*.pt"))
+        seqs = [(f.stem, f) for f in files]
+
     else:
         raise ValueError(f"Unknown dataset: {dataset!r}")
 
@@ -77,6 +81,8 @@ def _get_retargeter_format(dataset: str, retargeter: str, task_type: str = "robo
             return "smplx"
         elif dataset == "OMOMO":
             return "smplh" if task_type == "object_interaction" else "smplx"
+        elif dataset == "OMOMO_NEW":
+            return "smplh"
     return ""
 
 
@@ -89,6 +95,8 @@ def _get_file_ext(dataset: str, retargeter: str, task_type: str = "robot_only") 
     elif retargeter.lower() == "holosoma":
         if dataset.upper() == "LAFAN":
             return ".npy"
+        if dataset.upper() == "OMOMO_NEW":
+            return ".pt"
         if dataset.upper() == "OMOMO" and task_type == "object_interaction":
             return ".pt"
         return ".npz"
@@ -145,12 +153,15 @@ def retarget_sequence(
         kw["task_type"] = task_type
     motion_convertor.to_retargeter_input(dataset_up, retargeter_lo, raw_path, input_raw_path, **kw)
 
-    # Step b: unified input
-    print(f"  [2/4] to_unified_input    → {input_unified_path.name}")
-    kw_uni = {}
-    if dataset_up == "OMOMO":
-        kw_uni["seq_data"] = seq_data
-    motion_convertor.to_unified_input(dataset_up, raw_path, input_unified_path, **kw_uni)
+    # Step b: unified input (skipped for OMOMO_NEW — no raw joint data available)
+    if dataset_up != "OMOMO_NEW":
+        print(f"  [2/4] to_unified_input    → {input_unified_path.name}")
+        kw_uni = {}
+        if dataset_up == "OMOMO":
+            kw_uni["seq_data"] = seq_data
+        motion_convertor.to_unified_input(dataset_up, raw_path, input_unified_path, **kw_uni)
+    else:
+        print(f"  [2/4] to_unified_input    → skipped (OMOMO_new precomputed)")
 
     # Step c: run retargeter subprocess
     print(f"  [3/4] retargeter subprocess ({cfg['env']})")
@@ -162,9 +173,12 @@ def retarget_sequence(
 
     # Step d: unified output
     print(f"  [4/4] to_unified_output   → {output_unified_path.name}")
-    from motion_convertor.unified import load_unified
-    unified_in = load_unified(input_unified_path)
-    height = unified_in["height"]
+    if dataset_up == "OMOMO_NEW":
+        height = 0.0
+    else:
+        from motion_convertor.unified import load_unified
+        unified_in = load_unified(input_unified_path)
+        height = unified_in["height"]
     motion_convertor.to_unified_output(retargeter_lo, output_raw_path, output_unified_path, height)
 
 
@@ -192,8 +206,8 @@ def _run_retargeter(
         robot_gmr = _robot_name_gmr(robot)
         cmd += f" {arg_map['robot']} {robot_gmr}"
         if dataset != "LAFAN" and "body_model_path" in arg_map:
-            from motion_convertor._config import body_model_path as bmp
-            cmd += f" {arg_map['body_model_path']} {bmp(dataset) / 'models'}"
+            from motion_convertor._config import body_model_smplx_path as bmp
+            cmd += f" {arg_map['body_model_path']} {bmp(dataset).parent}"
         conda_run(env, cmd, cwd=repo_root())
 
     elif retargeter == "holosoma":
@@ -237,7 +251,7 @@ def _robot_urdf_holosoma(robot: str) -> str:
 
 def main():
     parser = argparse.ArgumentParser(description="Run a retargeting job.")
-    parser.add_argument("--dataset", required=True, help="LAFAN | SFU | OMOMO")
+    parser.add_argument("--dataset", required=True, help="LAFAN | SFU | OMOMO | OMOMO_new")
     parser.add_argument("--robot", required=True, help="G1 | H1 | ...")
     parser.add_argument("--retargeter", required=True, help="GMR | holosoma")
     parser.add_argument("--sequences", nargs="*", help="Subset of sequences (default: all)")
@@ -266,6 +280,8 @@ def main():
     if dataset == "OMOMO":
         task_suffix = "robot" if task_type == "robot_only" else "object"
         dataset_dir = f"OMOMO_{task_suffix}_{robot}"
+    elif dataset == "OMOMO_NEW":
+        dataset_dir = f"OMOMO_new_object_{robot}"
     else:
         dataset_dir = f"{dataset}_{robot}"
     run_parent = out_base / dataset_dir / retargeter.upper()

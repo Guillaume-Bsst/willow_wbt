@@ -38,6 +38,33 @@ for _subdir in ["phc", "poselib", "uhc"]:
     if _p.exists():
         sys.path.insert(0, str(_p))
 
+import pickle
+import numpy as np
+
+import pickle
+import numpy as np
+
+# --- PATCH DE COMPATIBILITÉ SÉCURISÉ ---
+
+# 1. On définit un Unpickler qui sait traduire "numpy._core" -> "numpy.core"
+class NumPy1_Unpickler(pickle.Unpickler):
+    def find_class(self, module, name):
+        if 'numpy._core' in module:
+            module = module.replace('numpy._core', 'numpy.core')
+        return super().find_class(module, name)
+
+# 2. On remplace la fonction pickle.load globale
+def patched_load(file, **kwargs):
+    return NumPy1_Unpickler(file, **kwargs).load()
+
+pickle.load = patched_load
+
+# 3. Patchs pour Isaac Gym (les alias supprimés dans NumPy 1.24+)
+if not hasattr(np, "float"): np.float = float
+if not hasattr(np, "int"): np.int = int
+if not hasattr(np, "bool"): np.bool = bool
+# ---------------------------------------
+
 # isaacgym's gymapi requires GPU/driver libraries — inject a lightweight stub
 # that exposes only the pure-PyTorch math functions used by interact2mimic.
 def _inject_isaacgym_stub() -> None:

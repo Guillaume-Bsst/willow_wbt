@@ -63,11 +63,11 @@ def convert_object_interaction(
     raw_path : path to the OMOMO train pickle (.p file)
     out_path : destination .pt file path
     """
-    omomo_data_root = dataset_path("OMOMO").parent   # data/00_raw_datasets/OMOMO/data → OMOMO/
-    smplh_pkl_dir   = omomo_data_root / "smplx" / "smplh"
-    smplh_npz_root  = body_model_path("OMOMO")       # OMOMO/smplh
-    smplx_path      = body_model_smplx_path("OMOMO") # SFU smplx models with neutral .pkl
-    object_path     = omomo_data_root / "data" / "captured_objects"
+    omomo_data_root = dataset_path("OMOMO")
+    smplh_pkl_dir   = body_model_path("OMOMO")
+    smplh_npz_root  = body_model_path("OMOMO")
+    smplx_path      = body_model_smplx_path("OMOMO")
+    object_path     = omomo_data_root / "captured_objects"
 
     run_entry_point(
         "processing", "interact", "omomo_to_pt",

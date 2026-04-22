@@ -14,7 +14,7 @@ def convert(npz_path: Path | str, out_path: Path | str) -> None:
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    model_root = body_model_path("SFU") / "models"
+    model_root = body_model_path("SFU")
 
     run_entry_point(
         "processing", "holosoma_prep", "sfu_to_joints",

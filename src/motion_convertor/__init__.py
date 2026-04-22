@@ -82,6 +82,13 @@ def to_retargeter_input(
         else:
             raise ValueError(f"Unknown retargeter for OMOMO: {retargeter!r}")
 
+    elif dataset == "OMOMO_NEW":
+        if retargeter != "holosoma":
+            raise ValueError("OMOMO_new only supports holosoma retargeter")
+        import shutil
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(raw_path, out_path)
+
     else:
         raise ValueError(f"Unknown dataset: {dataset!r}")
 

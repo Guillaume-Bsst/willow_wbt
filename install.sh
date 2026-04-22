@@ -142,12 +142,22 @@ _ensure_willow_env() {
 # Prefer uv if available in the env, fallback to python -m pip
 _uv_install() {
   local env_root="$1"; shift
-  if [[ -f "$env_root/bin/uv" ]]; then
+  local force_pip=0
+
+  for arg in "$@"; do
+    if [[ "$arg" == "--ignore-requires-python" ]]; then
+      force_pip=1
+      break
+    fi
+  done
+
+  if [[ -f "$env_root/bin/uv" && "$force_pip" -eq 0 ]]; then
     "$env_root/bin/uv" pip install --python "$env_root/bin/python" --system "$@"
   else
     "$env_root/bin/python" -m pip install "$@"
   fi
 }
+
 
 # --------------------------------------------------------------------------
 # willow_wbt
@@ -227,6 +237,7 @@ install_retargeting_upstream() {
   _header "human_body_prior → hsretargeting"
   "$HOME/.holosoma_deps/miniconda3/envs/hsretargeting/bin/pip" install \
     --no-deps --ignore-requires-python \
+    --no-deps \
     "$REPO_ROOT/src/motion_convertor/third_party/human_body_prior"
 }
 

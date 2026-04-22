@@ -8,12 +8,16 @@ raw_datasets:
 
   SFU:
     path: data/00_raw_datasets/SFU/SFU
-    body_model: data/00_raw_datasets/SFU/models_smplx_v1_1
+    body_model: data/00_raw_datasets/models/models_smplx_v1_1/models
+    body_model_smplx: data/00_raw_datasets/models/models_smplx_v1_1/models/smplx
 
   OMOMO:
     path: data/00_raw_datasets/OMOMO/data
-    body_model: data/00_raw_datasets/OMOMO/smplh
-    body_model_smplx: data/00_raw_datasets/SFU/models_smplx_v1_1/models/smplx
+    body_model: data/00_raw_datasets/models/smplh
+    body_model_smplx: data/00_raw_datasets/models/models_smplx_v1_1/models/smplx
+
+  OMOMO_NEW:
+    path: data/00_raw_datasets/OMOMO_new
 
 output:
   retargeted_motions: data/01_retargeted_motions
