@@ -84,20 +84,6 @@ Raw MoCap datasets (LAFAN1, OMOMO, SFU, ...)
 
 ---
 
-## Adding a New Solution
-
-The framework is designed to make integration straightforward:
-
-1. **New retargeter** — add as submodule in `modules/01_retargeting/`, write an adapter in `src/motion_convertor/` that converts its I/O to/from unified format
-2. **New trainer** — add as submodule in `modules/02_training/`, write an adapter in `src/motion_convertor/to_trainer_input/`
-3. **New dataset** — add download instructions in `data/00_raw_datasets/README.md`, write a prep converter in `src/motion_convertor/`
-4. **New inference engine** — add as submodule in `modules/03_inference/`, plug into `scripts/infer.py`
-5. **New deployment target** — add as submodule in `modules/04_deployment/`
-
-In all cases, the existing solutions and data are untouched.
-
----
-
 ## Repository Structure
 
 ```
@@ -179,22 +165,28 @@ Re-running is safe — already-installed envs are skipped via sentinel files.
 
 **Selective install:**
 ```bash
-./install.sh willow
-./install.sh gmr
-./install.sh retargeting [upstream|custom|both]
-./install.sh mujoco      [upstream|custom|both] [--no-warp]
-./install.sh isaacgym    [upstream|custom|both]
-./install.sh isaacsim    [upstream|custom|both]
-./install.sh inference   [upstream|custom|both]
-./install.sh deployment
+./install.sh                        # install everything (all variants)
+./install.sh willow                 # willow_wbt env only
+./install.sh gmr                    # GMR env only
+./install.sh interact               # InterAct env (OMOMO object_interaction)
+./install.sh retargeting            # both holosoma variants
+./install.sh retargeting upstream   # holosoma upstream only
+./install.sh retargeting custom     # holosoma_custom only
+./install.sh mujoco [upstream|custom] [--no-warp]
+./install.sh isaacgym [upstream|custom]
+./install.sh isaacsim [upstream|custom]
+./install.sh inference [upstream|custom]
+./install.sh deployment             # unitree_ros2 + unitree_control_interface
 ```
 
-### 3 — Activate the ecosystem
+### 3 — Install the datasets you want to use
+Please follow [data/00_raw_datasets/README.md](data/00_raw_datasets/README.md)
+
+### 4 — Activate the ecosystem
 ```bash
 source scripts/activate_willow.sh
 ```
 
-Points your shell to `~/.willow_deps/miniconda3` and activates `willow_wbt`. Switch to other envs with `conda activate <env>` as usual.
+And you can fully use the scripts ! [scripts/README.md](scripts/README.md)
 
-### 4 — Configure data paths
-Edit `cfg/data.yaml` to point to your local dataset and body model locations (defaults assume standard layout under `data/00_raw_datasets/`).
+Points your shell to `~/.willow_deps/miniconda3` and activates `willow_wbt`. Switch to other envs with `conda activate <env>` as usual.
