@@ -23,7 +23,9 @@ External solutions run unchanged in isolated conda environments; Willow provides
 ./install.sh
 
 # Selective installation
-./install.sh willow              # willow_wbt + gmr envs only
+./install.sh willow              # willow_wbt env only
+./install.sh gmr                 # GMR env only
+./install.sh interact            # interact env (OMOMO object_interaction)
 ./install.sh retargeting         # both holosoma retargeting variants
 ./install.sh mujoco [variant] [--no-warp]
 ./install.sh isaacgym [variant]
@@ -53,7 +55,7 @@ python scripts/train.py --dataset LAFAN --robot G1 --retargeter GMR --trainer ho
 python scripts/infer.py --dataset LAFAN --robot G1 --retargeter GMR --trainer holosoma --mode sim
 ```
 
-Supported combinations: datasets (LAFAN, SFU, OMOMO), retargeters (GMR, holosoma, holosoma_custom), trainers (holosoma, holosoma_custom), simulators (mjwarp, isaacgym, isaacsim).
+Supported combinations: datasets (LAFAN, SFU, OMOMO, OMOMO_NEW), retargeters (GMR, holosoma, holosoma_custom), trainers (holosoma, holosoma_custom), simulators (mjwarp, isaacgym, isaacsim).
 
 ## Architecture
 
@@ -100,6 +102,7 @@ Each YAML in `cfg/` is the single point of contact between Willow and one extern
 | Directory | Purpose |
 |---|---|
 | `cfg/data.yaml` | Centralized dataset paths and body model paths |
+| `cfg/datasets/` | Per-dataset yaml (raw_format, used by `__init__.py` dispatch) |
 | `cfg/retargeting/` | One YAML per retargeter variant |
 | `cfg/training/` | One YAML per trainer/simulator combination |
 | `cfg/inference/` | One YAML per inference variant |
@@ -117,6 +120,7 @@ Git submodules (see `.gitmodules`):
 - `src/motion_convertor/third_party/InterAct` — wzyabcas/InterAct (OMOMO → holosoma object_interaction preprocessing)
 - `src/motion_convertor/third_party/lafan1` — ubisoft/ubisoft-laforge-animation-dataset (LAFAN BVH tools)
 - `src/motion_convertor/third_party/human_body_prior` — nghorbani/human_body_prior (SMPL-H FK)
+- `src/motion_convertor/third_party/smplx` — vchoutas/smplx
 
 ### Adapter internals (`src/motion_convertor/`)
 
@@ -126,15 +130,18 @@ The subpackages use underscore-prefixed names to mark them as internal:
 src/motion_convertor/
 ├── __init__.py               # 4 public dispatch functions
 ├── unified.py                # save_unified / load_unified
-├── _config.py                # loads cfg/data.yaml, exposes repo_root(), dataset_path(), body_model_path()
+├── formats.py                # format registry and validate_format()
+├── connectors.py             # get_connector(src_fmt, dst_fmt) dispatch table
+├── _config.py                # loads cfg/data.yaml, exposes repo_root(), dataset_path(), body_model_path(), body_model_smplx_path(), output_path()
 ├── _subprocess.py            # conda_run(), run_entry_point()
+├── wrappers/                 # thin scripts called via subprocess in their own conda envs
 ├── _to_unified_input/        # raw dataset → unified (T,22,3) Z-up
 ├── _to_retargeter_input/     # raw dataset → retargeter native format
 ├── _to_unified_output/       # retargeter output → unified
 └── _to_trainer_input/        # retargeter output → trainer-native format
 ```
 
-Most converters in `_to_unified_input/` and `_to_retargeter_input/` delegate via subprocess to `scripts/wrappers/` running in the `hsretargeting` env (using `cfg/processing/holosoma_prep.yaml`). GMR-specific FK runs in the `gmr` env via `scripts/wrappers/gmr_fk.py`. OMOMO object_interaction uses the `interact` env via `scripts/wrappers/omomo_to_intermimic.py`.
+Most converters in `_to_unified_input/` and `_to_retargeter_input/` delegate via subprocess to `src/motion_convertor/wrappers/` running in the `hsretargeting` env (using `cfg/processing/holosoma_prep.yaml`). GMR-specific FK runs in the `gmr` env via `src/motion_convertor/wrappers/gmr_fk.py`. OMOMO object_interaction uses the `interact` env via `src/motion_convertor/wrappers/omomo_to_intermimic.py`.
 
 ### Scripts (`scripts/`)
 
@@ -142,7 +149,6 @@ Most converters in `_to_unified_input/` and `_to_retargeter_input/` delegate via
 - `train.py` — converts retargeter output to trainer input, then launches training
 - `infer.py` — runs a trained policy in sim or on real robot
 - `activate_willow.sh` — activates the `willow_wbt` conda env from `~/.willow_deps/`
-- `wrappers/` — thin scripts that run inside specific conda envs (called via subprocess, not standalone)
 
 ## Data Directories
 

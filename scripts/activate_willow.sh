@@ -68,6 +68,6 @@ done
 echo "Willow WBT ecosystem active"
 echo "  ~/.willow_deps/              willow_wbt, gmr"
 echo "  ~/.holosoma_deps/            hsretargeting, hsmujoco, hsgym, hssim, hsinference (upstream)"
-echo "  ~/.holosoma_custom_deps/     hsretargeting, hsmujoco, hsgym, hssim, hsinference (custom)"
+echo "  ~/.holosoma_custom_deps/     hscretargeting, hscmujoco, hscgym, hscsim, hscinference (custom)"
 echo ""
 echo "  conda env list   → shows all envs across all three ecosystems"

@@ -48,6 +48,17 @@ OMOMO/
 
 ---
 
+## OMOMO_new/
+
+The holosoma retargeting pipeline uses the processed dataset by InterMimic. The data format differs from the original OMOMO dataset.
+
+1. Download the processed OMOMO data from [this link](https://drive.google.com/file/d/141YoPOd2DlJ4jhU2cpZO5VU5GzV_lm5j/view)
+2. Extract the downloaded folder to `/OMOMO_new`
+
+The data in `OMOMO_new/` should be `.pt` files.
+
+---
+
 ## SFU/
 
 ```

@@ -203,7 +203,7 @@ install_interact() {
     torch==2.0.0 --index-url https://download.pytorch.org/whl/cpu
   _uv_install "$ENV_ROOT" \
     scipy trimesh joblib smplx tqdm numpy==1.23.1 poselib PyYAML \
-    mujoco lxml numpy-stl opencv-python-headless "numpy==1.23.1"
+    mujoco lxml numpy-stl opencv-python-headless
   # human-body-prior from bundled submodule (same as hsretargeting)
   _uv_install "$ENV_ROOT" \
     --no-deps --ignore-requires-python \
@@ -237,7 +237,6 @@ install_retargeting_upstream() {
   _header "human_body_prior → hsretargeting"
   "$HOME/.holosoma_deps/miniconda3/envs/hsretargeting/bin/pip" install \
     --no-deps --ignore-requires-python \
-    --no-deps \
     "$REPO_ROOT/src/motion_convertor/third_party/human_body_prior"
 }
 

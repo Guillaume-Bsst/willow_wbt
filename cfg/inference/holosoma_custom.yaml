@@ -8,21 +8,21 @@ env: hscinference
 
 entry_points:
   sim:
-    cmd: python modules/03_inference/holosoma_inference_custom/holosoma_inference/run_policy.py
+    cmd: python modules/03_inference/holosoma_inference_custom/run_policy.py
     args:
       config:      # positional
       model_path:  --task.model-path
       motion_file: --task.motion-file
       sdk_type:    --robot.sdk-type
   real:
-    cmd: python modules/03_inference/holosoma_inference_custom/holosoma_inference/run_policy.py
+    cmd: python modules/03_inference/holosoma_inference_custom/run_policy.py
     args:
       config:      # positional
       model_path:  --task.model-path
       motion_file: --task.motion-file
       sdk_type:    --robot.sdk-type
   ros2:
-    cmd: python modules/03_inference/holosoma_inference_custom/holosoma_inference/run_policy.py
+    cmd: python modules/03_inference/holosoma_inference_custom/run_policy.py
     args:
       config:      # positional
       model_path:  --task.model-path

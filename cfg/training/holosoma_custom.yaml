@@ -8,19 +8,19 @@ simulators:
   isaacgym:
     env: hscgym
     setup_script: modules/third_party/holosoma_custom/scripts/source_isaacgym_setup.sh
-    cmd: python modules/02_training/holosoma_custom/holosoma/train_agent.py
+    cmd: python modules/02_training/holosoma_custom/train_agent.py
     extra_args: simulator:isaacgym
 
   isaacsim:
     env: hscsim
     setup_script: modules/third_party/holosoma_custom/scripts/source_isaacsim_setup.sh
-    cmd: python modules/02_training/holosoma_custom/holosoma/train_agent.py
+    cmd: python modules/02_training/holosoma_custom/train_agent.py
     extra_args: simulator:isaacsim
 
   mjwarp:
     env: hscmujoco
     setup_script: modules/third_party/holosoma_custom/scripts/source_mujoco_setup.sh
-    cmd: python modules/02_training/holosoma_custom/holosoma/train_agent.py
+    cmd: python modules/02_training/holosoma_custom/train_agent.py
     extra_args: simulator:mjwarp
 
 args:
