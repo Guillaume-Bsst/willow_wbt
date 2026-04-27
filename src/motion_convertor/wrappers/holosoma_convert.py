@@ -23,11 +23,12 @@ from pathlib import Path
 
 # The actual bridge lives in hsretargeting env — invoke it directly
 # (this wrapper just forwards args and ensures --once is always set)
-_BRIDGE = (
+_HOLOSOMA_RETARGETING_ROOT = (
     Path(__file__).parents[3]
     / "modules/third_party/holosoma/src/holosoma_retargeting"
-    / "holosoma_retargeting/data_conversion/convert_data_format_mj.py"
+    / "holosoma_retargeting"
 )
+_BRIDGE = _HOLOSOMA_RETARGETING_ROOT / "data_conversion/convert_data_format_mj.py"
 
 
 def main():
@@ -38,6 +39,8 @@ def main():
     parser.add_argument("--robot", default="g1")
     parser.add_argument("--input_fps", type=int, default=30)
     parser.add_argument("--output_fps", type=int, default=50)
+    parser.add_argument("--object_name", default="ground",
+                        help="MuJoCo scene object name (default: ground for robot-only)")
     args = parser.parse_args()
 
     cmd = [
@@ -47,9 +50,11 @@ def main():
         f"--robot={args.robot}",
         f"--input_fps={args.input_fps}",
         f"--output_fps={args.output_fps}",
+        f"--object_name={args.object_name}",
         "--once",
     ]
-    result = subprocess.run(cmd, check=True)
+    # convert_data_format_mj.py resolves models/ relative to cwd
+    result = subprocess.run(cmd, check=True, cwd=str(_HOLOSOMA_RETARGETING_ROOT))
     sys.exit(result.returncode)
 
 

@@ -23,7 +23,7 @@ format_args:
   holosoma_pt:        {data_format: smplh}
 
 robot_config:
-  G1:
+  G1_29dof:
     urdf: modules/third_party/holosoma/src/holosoma_retargeting/holosoma_retargeting/models/g1/g1_29dof.urdf
 
 env: hsretargeting

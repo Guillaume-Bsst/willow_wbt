@@ -76,7 +76,8 @@ def _holosoma_to_holosoma_trainer(src, dst, **kw):
     convert(src, dst,
             robot=kw.get("robot", "g1"),
             input_fps=kw.get("input_fps", 30),
-            output_fps=kw.get("output_fps", 50))
+            output_fps=kw.get("output_fps", 50),
+            object_name=kw.get("object_name", "ground"))
 
 
 CONNECTORS: dict[tuple[str, str], Callable[..., None]] = {

@@ -27,6 +27,7 @@ def convert(
     robot: str = "g1",
     input_fps: int = 30,
     output_fps: int = 50,
+    object_name: str = "ground",
 ) -> None:
     """
     Convert holosoma retargeter output to trainer input (form B) via the
@@ -39,6 +40,7 @@ def convert(
     robot           : robot name as expected by holosoma (default: g1)
     input_fps       : FPS of the retargeter output (default: 30)
     output_fps      : FPS for trainer input (default: 50)
+    object_name     : MuJoCo scene object ("ground" for robot-only; default: ground)
     """
     output_raw_path = Path(output_raw_path)
     out_path = Path(out_path)
@@ -51,6 +53,7 @@ def convert(
         f"--output_name {out_path} "
         f"--robot {robot} "
         f"--input_fps {input_fps} "
-        f"--output_fps {output_fps}"
+        f"--output_fps {output_fps} "
+        f"--object_name {object_name}"
     )
     conda_run(_ENV, cmd, cwd=repo_root())

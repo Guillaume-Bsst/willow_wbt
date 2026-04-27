@@ -23,8 +23,10 @@ format_args:
   holosoma_pt:        {data_format: smplh}
 
 robot_config:
-  G1:
+  G1_29dof:
     urdf: modules/01_retargeting/holosoma_retargeting_custom/models/g1/g1_29dof.urdf
+  G1_27dof:
+    urdf: modules/01_retargeting/holosoma_retargeting_custom/models/g1/g1_27dof.urdf
 
 env: hscretargeting
 
@@ -42,6 +44,7 @@ entry_points:
       task_name:   --task-name
       data_format: --data_format
       robot_urdf:  --robot-config.robot-urdf-file
+      robot_dof:   --robot-config.robot-dof
       visualize:   --retargeter.visualize
       debug:       --retargeter.debug
   batch:
@@ -53,4 +56,5 @@ entry_points:
       task_type:   --task-type
       data_format: --data_format
       robot_urdf:  --robot-config.robot-urdf-file
+      robot_dof:   --robot-config.robot-dof
       object_name: --task-config.object-name

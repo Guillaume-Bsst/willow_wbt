@@ -5,7 +5,7 @@ retarget.py — run a full retargeting job for one (dataset, robot, retargeter) 
 Usage:
     python scripts/retarget.py \
         --dataset LAFAN \
-        --robot G1 \
+        --robot G1_29dof \
         --retargeter GMR \
         [--sequences seq1 seq2 ...] \
         [--run-id run_20240301_120000]
@@ -13,10 +13,23 @@ Usage:
 Output: data/01_retargeted_motions/{dataset}_{robot}/{retargeter}/run_{timestamp}/
 """
 import argparse
+import re
 import sys
 import yaml
 from datetime import datetime
 from pathlib import Path
+
+_DOF_SUFFIX_RE = re.compile(r"_\d+dof$", re.IGNORECASE)
+
+
+def _validate_robot(robot: str) -> str:
+    """Require explicit dof suffix; normalize to uppercase base + lowercase suffix (G1_29dof)."""
+    m = _DOF_SUFFIX_RE.search(robot)
+    if not m:
+        raise ValueError(
+            f"--robot must include an explicit DOF suffix (e.g. G1_29dof or G1_27dof), got {robot!r}"
+        )
+    return robot[:m.start()].upper() + m.group(0).lower()
 
 _REPO_ROOT = Path(__file__).parents[1]
 sys.path.insert(0, str(_REPO_ROOT / "src"))
@@ -129,6 +142,27 @@ def retarget_sequence(
         dataset=dataset_up,
     )
 
+    # Retargeters that receive --save_dir (not --output) may name the output file
+    # themselves (e.g. holosoma writes {seq_name}_original.npz). Normalize to the
+    # expected {seq_name}_output_raw{ext} name so downstream steps are consistent.
+    if not output_raw_path.exists():
+        candidates = [
+            f for f in run_dir.glob(f"{seq_name}*{output_ext}")
+            if "_input" not in f.name and "unified" not in f.name
+        ]
+        if len(candidates) == 1:
+            candidates[0].rename(output_raw_path)
+            print(f"     renamed {candidates[0].name} → {output_raw_path.name}")
+        elif not candidates:
+            raise FileNotFoundError(
+                f"Retargeter produced no output for {seq_name!r} in {run_dir}"
+            )
+        else:
+            raise RuntimeError(
+                f"Ambiguous retargeter output for {seq_name!r}: "
+                + ", ".join(f.name for f in candidates)
+            )
+
     # Step d: unified output
     print(f"  [4/4] to_unified_output   → {output_unified_path.name}")
     if dataset_up == "OMOMO_NEW":
@@ -173,7 +207,13 @@ def _run_retargeter(
     arg_map = ep.get("args", {})
     ep_cwd = repo_root() / ep["cwd"] if "cwd" in ep else repo_root()
 
-    robot_cfg = cfg.get("robot_config", {}).get(robot.upper(), {})
+    robot_config = cfg.get("robot_config", {})
+    robot_cfg = robot_config.get(robot, {})
+    if not robot_cfg and robot_config:
+        supported = list(robot_config.keys())
+        raise ValueError(
+            f"Robot {robot!r} not supported by retargeter {retargeter!r}. Supported: {supported}"
+        )
     format_args = cfg.get("format_args", {}).get(input_format, {})
 
     cmd = ep["cmd"]
@@ -197,6 +237,14 @@ def _run_retargeter(
     # Robot (urdf style — holosoma)
     if "robot_urdf" in arg_map and "urdf" in robot_cfg:
         cmd += f" {arg_map['robot_urdf']} {repo_root() / robot_cfg['urdf']}"
+
+    # Robot DOF — extracted from the validated robot name (e.g. G1_27dof → 27)
+    # Needed so ROBOT_DOF in RobotConfig matches the loaded URDF (default is 29 for G1)
+    if "robot_dof" in arg_map:
+        m = _DOF_SUFFIX_RE.search(robot)
+        if m:
+            dof = int(m.group(0)[1:-3])  # "_27dof" → 27
+            cmd += f" {arg_map['robot_dof']} {dof}"
 
     # Body model path (GMR SMPLX entry points only)
     if "body_model_path" in arg_map and dataset and dataset != "LAFAN":
@@ -227,7 +275,8 @@ def _run_retargeter(
 def main():
     parser = argparse.ArgumentParser(description="Run a retargeting job.")
     parser.add_argument("--dataset", required=True, help="LAFAN | SFU | OMOMO | OMOMO_new")
-    parser.add_argument("--robot", required=True, help="G1 | H1 | ...")
+    parser.add_argument("--robot", required=True,
+                        help="Robot with explicit DOF suffix: G1_29dof | G1_27dof (holosoma_custom only)")
     parser.add_argument("--retargeter", required=True, help="gmr | holosoma | holosoma_custom")
     parser.add_argument("--sequences", nargs="*", help="Subset of sequences (default: all)")
     parser.add_argument("--run-id", default=None)
@@ -237,7 +286,7 @@ def main():
     args = parser.parse_args()
 
     dataset = args.dataset.upper()
-    robot = args.robot.upper()
+    robot = _validate_robot(args.robot)
     retargeter = args.retargeter.lower()
     task_type = args.task_type
 

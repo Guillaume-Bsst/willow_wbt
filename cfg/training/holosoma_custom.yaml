@@ -23,9 +23,43 @@ simulators:
     cmd: python modules/02_training/holosoma_custom/train_agent.py
     extra_args: simulator:mjwarp
 
+# Maps (robot, simulator, algo, task_type) → holosoma_custom exp: subcommand name.
+# holosoma_custom WBT exp names encode the simulator, so each simulator has its own map.
+# isaacgym has no WBT presets — unsupported simulator → error before subprocess is launched.
+robot_exp_map:
+  G1_29dof:
+    isaacsim:
+      ppo:
+        robot_only: g1-29dof-wbt-isaacsim
+        with_object: g1-29dof-wbt-isaacsim-w-object
+      fast_sac:
+        robot_only: g1-29dof-wbt-fast-sac-isaacsim
+        with_object: g1-29dof-wbt-fast-sac-isaacsim-w-object
+    mjwarp:
+      ppo:
+        robot_only: g1-29dof-wbt-mjwarp
+        with_object: g1-29dof-wbt-mjwarp-w-object
+      fast_sac:
+        robot_only: g1-29dof-wbt-fast-sac-mjwarp
+        with_object: g1-29dof-wbt-fast-sac-mjwarp-w-object
+  G1_27dof:
+    isaacsim:
+      ppo:
+        robot_only: g1-27dof-wbt-isaacsim
+        with_object: g1-27dof-wbt-isaacsim-w-object
+      fast_sac:
+        robot_only: g1-27dof-wbt-fast-sac-isaacsim
+        with_object: g1-27dof-wbt-fast-sac-isaacsim-w-object
+    mjwarp:
+      ppo:
+        robot_only: g1-27dof-wbt-mjwarp
+        with_object: g1-27dof-wbt-mjwarp-w-object
+      fast_sac:
+        robot_only: g1-27dof-wbt-fast-sac-mjwarp
+        with_object: g1-27dof-wbt-fast-sac-mjwarp-w-object
+
 args:
-  motion_file:    --motion-data.motion-file
-  robot:          --exp
-  output_dir:     --logger.log-dir
+  motion_file:    --command.setup_terms.motion_command.params.motion_config.motion_file
+  output_dir:     --logger.base-dir
   num_envs:       --training.num-envs
   checkpoint:     --training.checkpoint

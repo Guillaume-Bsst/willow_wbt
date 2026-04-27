@@ -13,6 +13,9 @@ data/00_raw_datasets/OMOMO_new/*
 data/01_retargeted_motions/*
 !data/01_retargeted_motions/README.md
 
+data/02_policies/*
+!data/02_policies/.gitkeep
+
 # Python
 __pycache__/
 *.py[cod]
@@ -22,6 +25,7 @@ __pycache__/
 venv/
 dist/
 build/
+tea_debug.log
 
 # Jupyter
 .ipynb_checkpoints/
