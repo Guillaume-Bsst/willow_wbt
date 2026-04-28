@@ -76,8 +76,12 @@ def test_build_infer_cmd_local_path():
 
 def test_build_infer_cmd_wandb_uri():
     cmd = infer._build_infer_cmd(_EP, "inference:g1-29dof-wbt", "wandb://entity/project/abc/model.onnx")
-    assert "--task.model-path wandb://entity/project/abc/model.onnx" in cmd
-    assert "--robot.sdk-type ros2" in cmd
+    assert cmd == (
+        "python modules/03_inference/holosoma_inference_custom/run_policy.py"
+        " inference:g1-29dof-wbt"
+        " --task.model-path wandb://entity/project/abc/model.onnx"
+        " --robot.sdk-type ros2"
+    )
 
 
 def test_build_infer_cmd_no_extra_args():
@@ -119,7 +123,7 @@ def test_validate_neither_mode_rejected():
         infer._validate_args(parser, args)
 
 
-def test_validate_local_mode_missing_robot_rejected():
+def test_validate_local_mode_incomplete_args_rejected():
     parser = _make_parser()
     args = parser.parse_args([
         "--trainer", "holosoma_custom",
