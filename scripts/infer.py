@@ -73,6 +73,10 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--retargeter", default=None)
     parser.add_argument("--policy-run", default="latest",
                         help="Policy run ID or 'latest' (default: latest). Local mode only.")
+    parser.add_argument("-i", "--interactive", action="store_true", default=True,
+                        help="Run in interactive mode (stdin inherited) to allow keyboard control (default: True)")
+    parser.add_argument("--no-interactive", action="store_false", dest="interactive",
+                        help="Disable interactive mode")
     return parser
 
 
@@ -130,7 +134,7 @@ def main():
 
     cmd = _build_infer_cmd(ep, args.config, model_path)
     print(f"Launching {trainer} (ros2)...")
-    conda_run(env, cmd, cwd=repo_root())
+    conda_run(env, cmd, cwd=repo_root(), interactive=args.interactive)
 
 
 if __name__ == "__main__":
