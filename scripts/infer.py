@@ -50,7 +50,7 @@ def resolve_policy_run(dataset: str, robot: str, retargeter: str, trainer: str, 
 def _build_infer_cmd(ep: dict, config: str, model_path: str) -> str:
     """Build the subprocess command string for run_policy.py."""
     arg_map = ep.get("args", {})
-    cmd = ep["cmd"]
+    cmd = ep["cmd"].strip()
     cmd += f" {config}"
     cmd += f" {arg_map['model_path']} {model_path}"
     extra = ep.get("extra_args", "")

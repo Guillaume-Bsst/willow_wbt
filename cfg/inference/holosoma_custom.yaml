@@ -8,7 +8,11 @@ env: hscinference
 
 entry_points:
   ros2:
-    cmd: python modules/03_inference/holosoma_inference_custom/run_policy.py
+    cmd: >
+      source modules/third_party/holosoma_custom/scripts/source_inference_setup.sh &&
+      source modules/04_deployment/unitree_ros2/cyclonedds_ws/install/setup.bash &&
+      source <(ros2 run unitree_control_interface autoset_environment_dds.py SIMULATION) &&
+      /home/gbesset/.holosoma_custom_deps/miniconda3/envs/hscinference/bin/python modules/03_inference/holosoma_inference_custom/run_policy.py
     extra_args: "--robot.sdk-type ros2"
     args:
       config:      # positional

@@ -280,3 +280,50 @@ python scripts/infer.py \
 2. *Local mode:* locates `data/02_policies/{dataset}_{robot}/{retargeter}_{trainer}/{policy-run}/`, picks first `.onnx` or `.pt` file
 3. *Wandb mode:* uses `--wandb-run` URI directly as model path
 4. Subprocess (`hscinference` env): `python modules/03_inference/holosoma_inference_custom/run_policy.py {config} --task.model-path {model} --robot.sdk-type ros2`
+
+---
+
+## deploy.py
+
+Launches deployment components for Willow WBT via tmux. Orchestrates the simulator, watchdog, and ROS2 bridge.
+
+**CLI:**
+```bash
+# Simulation mode (Gazebo + Watchdog + Bridge)
+python scripts/deploy.py --mode SIM --robot g1_27dof
+
+# Real robot mode (Shutdown sportsmode + Watchdog + Bridge)
+python scripts/deploy.py --mode REAL --robot g1_27dof
+```
+
+**Arguments:**
+
+| Argument | Required | Notes |
+|---|---|---|
+| `--mode` | yes | `SIM` (simulation) or `REAL` (physical robot) |
+| `--robot` | no | Robot variant. Default: `g1_27dof`. Supported: `g1_27dof` |
+| `--deployer` | no | Config name in `cfg/deployment/`. Default: `unitree` |
+
+**What it does:**
+1. Validates that the conda environment and workspace exist.
+2. Reads `cfg/deployment/{deployer}.yaml` to resolve commands and environments.
+3. Creates a **tmux session** (`willow-deploy-sim` or `willow-deploy-real`) with 3 panes:
+   - **Pane 0 (top-left):**
+     - `SIM`: `ros2 launch unitree_simulation launch_sim.launch.py`
+     - `REAL`: `ros2 run unitree_control_interface shutdown_sportsmode.py`
+   - **Pane 1 (top-right):** `ros2 launch unitree_control_interface watchdog.launch.py` (Watchdog)
+   - **Pane 2 (bottom):** `python src/ros2_bridge/holosoma_inference_custom.py` (ROS2 Bridge)
+4. Each pane automatically:
+   - Activates the correct conda environment (e.g., `unitree_control_interface`).
+   - Sources the ROS2 workspace (`cyclonedds_ws`).
+   - Runs `autoset_environment_dds.py` to configure CycloneDDS for the selected mode.
+
+**Layout:**
+```
+┌─────────────┬─────────────┐
+│  sim /      │             │
+│  shutdown   │  watchdog   │
+├─────────────┴─────────────┤
+│  bridge                   │
+└───────────────────────────┘
+```
