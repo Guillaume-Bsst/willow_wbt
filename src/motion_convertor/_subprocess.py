@@ -2,6 +2,7 @@
 Helpers for running module commands in their own conda environments.
 Reads cfg/ yamls to get env names and command templates.
 """
+import os
 import subprocess
 import sys
 import yaml
@@ -57,7 +58,7 @@ def run_entry_point(stage: str, module: str, entry: str, args: dict, cwd: Path |
     env = cfg["env"]
     ep = cfg["entry_points"][entry]
 
-    cmd = ep["cmd"]
+    cmd = os.path.expandvars(ep["cmd"])
     arg_map = ep.get("args", {})
     for willow_key, value in args.items():
         flag = arg_map.get(willow_key)
