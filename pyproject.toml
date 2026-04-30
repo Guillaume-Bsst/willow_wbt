@@ -12,13 +12,6 @@ dependencies = [
     "scipy",
     "pyyaml",
     "joblib",
-    "smplx",
-    "bvhio",
-    "mujoco",
-    "torch",
-    # human_body_prior is required for OMOMO FK (SMPL-H BodyModel)
-    # Install from: src/motion_convertor/third_party/InterAct/
-    #   pip install -r src/motion_convertor/third_party/InterAct/requirements.txt
 ]
 
 [tool.setuptools.packages.find]
