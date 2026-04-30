@@ -23,6 +23,7 @@ def conda_run(
     cwd: Path | None = None,
     check: bool = True,
     interactive: bool = False,
+    prefix: str | None = None,
 ) -> subprocess.CompletedProcess:
     """
     Run a shell command inside a conda environment.
@@ -37,7 +38,12 @@ def conda_run(
         cwd = repo_root()
 
     # `conda run` does not respect the calling shell's cwd — prepend an explicit cd.
-    full_cmd = f"conda run -n {env} --no-capture-output bash -c 'cd {cwd} && {cmd}'"
+    # Use --prefix when the env lives outside the active conda root (e.g. holosoma envs).
+    if prefix is not None:
+        env_selector = f"--prefix {os.path.expandvars(prefix)}"
+    else:
+        env_selector = f"-n {env}"
+    full_cmd = f"conda run {env_selector} --no-capture-output bash -c 'cd {cwd} && {cmd}'"
     stdin = None if interactive else subprocess.DEVNULL
     return subprocess.run(
         full_cmd,
@@ -74,4 +80,5 @@ def run_entry_point(stage: str, module: str, entry: str, args: dict, cwd: Path |
     else:
         effective_cwd = repo_root()
 
-    return conda_run(env, cmd, cwd=effective_cwd)
+    prefix = cfg.get("env_prefix")
+    return conda_run(env, cmd, cwd=effective_cwd, prefix=prefix)
