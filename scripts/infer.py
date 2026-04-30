@@ -133,8 +133,9 @@ def main():
         print(f"Model: {model_path}")
 
     cmd = _build_infer_cmd(ep, args.config, model_path)
+    prefix = cfg.get("env_prefix")
     print(f"Launching {trainer} (ros2)...")
-    conda_run(env, cmd, cwd=repo_root(), interactive=args.interactive)
+    conda_run(env, cmd, cwd=repo_root(), interactive=args.interactive, prefix=prefix)
 
 
 if __name__ == "__main__":
